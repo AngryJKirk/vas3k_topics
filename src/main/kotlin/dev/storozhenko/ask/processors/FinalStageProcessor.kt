@@ -2,13 +2,18 @@ package dev.storozhenko.ask.processors
 
 import dev.storozhenko.ask.EditButton
 import dev.storozhenko.ask.QuestionStorage
+import dev.storozhenko.ask.Sender
 import dev.storozhenko.ask.Stage
 import dev.storozhenko.ask.StageProcessor
+import dev.storozhenko.ask.Topic
 import dev.storozhenko.ask.send
 import org.telegram.telegrambots.meta.api.objects.Update
 import org.telegram.telegrambots.meta.bots.AbsSender
 
-class FinalStageProcessor(private val questionStorage: QuestionStorage) : StageProcessor {
+class FinalStageProcessor(
+    private val questionStorage: QuestionStorage,
+    private val sender: Sender
+) : StageProcessor {
     override fun ownedStage() = Stage.FINAL
 
     override fun process(update: Update): (AbsSender) -> Stage {
@@ -25,7 +30,7 @@ class FinalStageProcessor(private val questionStorage: QuestionStorage) : StageP
             }
             EditButton.EDIT_TOPIC -> {
                 {
-                    it.send(update, "Давай поправим тему вопроса")
+                    it.send(update, "Давай поправим тему вопроса") { replyMarkup = Topic.getKeyboard() }
                     Stage.TITLE_EDIT
                 }
             }
@@ -37,7 +42,10 @@ class FinalStageProcessor(private val questionStorage: QuestionStorage) : StageP
             }
             EditButton.DONE -> {
                 {
-                    it.send(update, "Ура")
+                    it.send(update, "Ура, твой вопрос сейчас отправится. Чтобы отправить еще один нажми /start")
+                    val question = questionStorage.getQuestion(update)
+                    sender.broadcast(question, it)
+                    questionStorage.deleteQuestion(update)
                     Stage.SEND
                 }
             }

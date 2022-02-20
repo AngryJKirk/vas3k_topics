@@ -15,16 +15,11 @@ class NoneStageProcessor : StageProcessor {
     override fun process(update: Update): (AbsSender) -> Stage {
         return {
             it.send(update, "Кароч вот тебе вопрос, выбери тему") {
-                replyMarkup = getKeyboard()
+                replyMarkup = Topic.getKeyboard()
             }
 
             Stage.TOPIC
         }
     }
 
-    private fun getKeyboard(): ReplyKeyboardMarkup {
-        return Topic.values()
-            .map(Topic::topicName)
-            .toKeyboard()
-    }
 }

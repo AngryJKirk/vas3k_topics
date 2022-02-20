@@ -1,5 +1,7 @@
 package dev.storozhenko.ask
 
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup
+
 enum class EditButton(val textName: String) {
 
     EDIT_TEXT("Изменить вопрос"),
@@ -10,7 +12,13 @@ enum class EditButton(val textName: String) {
 
     companion object {
         fun getByName(value: String): EditButton? {
-            return EditButton.values().firstOrNull { it.textName == value }
+            return values().firstOrNull { it.textName == value }
+        }
+
+        fun getKeyboard(): ReplyKeyboardMarkup {
+            return values()
+                .map(EditButton::textName)
+                .toKeyboard(chunkSize = 1)
         }
     }
 }

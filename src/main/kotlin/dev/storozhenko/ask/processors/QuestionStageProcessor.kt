@@ -21,14 +21,9 @@ class QuestionStageProcessor(private val questionStorage: QuestionStorage) : Sta
             }
         questionStorage.addQuestionText(update, text)
         return {
-            it.send(update, "Теперь проверь, что все в порядке") { getKeyboard() }
+            it.send(update, "Теперь проверь, что все в порядке") { replyMarkup = EditButton.getKeyboard() }
+            it.send(update, questionStorage.getQuestion(update).toString())
             Stage.FINAL
         }
-    }
-
-    private fun getKeyboard(): ReplyKeyboardMarkup {
-        return EditButton.values()
-            .map(EditButton::textName)
-            .toKeyboard(chunkSize = 1)
     }
 }

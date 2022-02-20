@@ -25,8 +25,8 @@ class QuestionStorage {
         val map = getMap(update)
         return Question(
             Topic.getByName(map["topic"]!!)!!,
-            map["title"]!!,
-            map["text"]!!,
+            map["title"] ?: "",
+            map["text"] ?: "",
             getKey(update)
         )
     }

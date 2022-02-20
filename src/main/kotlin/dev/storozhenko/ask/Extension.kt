@@ -44,4 +44,3 @@ fun Collection<String>.toKeyboard(chunkSize: Int = 2): ReplyKeyboardMarkup {
         oneTimeKeyboard = true
     }
 }
-}
