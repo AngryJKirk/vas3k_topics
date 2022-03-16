@@ -1,12 +1,19 @@
-package dev.storozhenko.ask
+package dev.storozhenko.ask.models
 
+import dev.storozhenko.ask.toKeyboard
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup
 import java.lang.IllegalStateException
 
 enum class Topic(val topicName: String) {
-    BAR("Бар"),
     TECH("Тех"),
-    TRAKTOR("Трактор");
+    FIN("Финансовая независимость"),
+    ABOARD("Трактор"),
+    DIY("DIY"),
+    CARS("Авточат"),
+    HEALTH("ЗОЖ"),
+    TRAVEL("Тревел"),
+    COOKING("Кухня"),
+    PIZDUKI("Карапузы");
 
     companion object {
         fun getByName(value: String): Topic? {

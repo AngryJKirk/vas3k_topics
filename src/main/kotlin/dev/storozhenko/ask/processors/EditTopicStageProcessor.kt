@@ -1,10 +1,9 @@
 package dev.storozhenko.ask.processors
 
-import dev.storozhenko.ask.EditButton
-import dev.storozhenko.ask.QuestionStorage
-import dev.storozhenko.ask.Stage
-import dev.storozhenko.ask.StageProcessor
-import dev.storozhenko.ask.Topic
+import dev.storozhenko.ask.models.EditButton
+import dev.storozhenko.ask.services.QuestionStorage
+import dev.storozhenko.ask.models.Stage
+import dev.storozhenko.ask.models.Topic
 import dev.storozhenko.ask.send
 import org.telegram.telegrambots.meta.api.objects.Update
 import org.telegram.telegrambots.meta.bots.AbsSender

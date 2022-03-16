@@ -1,5 +1,6 @@
-package dev.storozhenko.ask
+package dev.storozhenko.ask.models
 
+import dev.storozhenko.ask.toKeyboard
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup
 
 enum class EditButton(val textName: String) {

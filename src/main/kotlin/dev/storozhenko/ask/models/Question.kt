@@ -1,4 +1,4 @@
-package dev.storozhenko.ask
+package dev.storozhenko.ask.models
 
 data class Question(
     val topic: Topic,

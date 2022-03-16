@@ -1,4 +1,4 @@
-package dev.storozhenko.ask
+package dev.storozhenko.ask.models
 
 enum class Stage {
     NONE,
@@ -9,6 +9,5 @@ enum class Stage {
     TOPIC_EDIT,
     TITLE_EDIT,
     QUESTION_EDIT,
-    SEND,
-    CANCEL
+    SEND
 }

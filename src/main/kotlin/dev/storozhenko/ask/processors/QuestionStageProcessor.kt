@@ -1,13 +1,10 @@
 package dev.storozhenko.ask.processors
 
-import dev.storozhenko.ask.EditButton
-import dev.storozhenko.ask.QuestionStorage
-import dev.storozhenko.ask.Stage
-import dev.storozhenko.ask.StageProcessor
+import dev.storozhenko.ask.models.EditButton
+import dev.storozhenko.ask.services.QuestionStorage
+import dev.storozhenko.ask.models.Stage
 import dev.storozhenko.ask.send
-import dev.storozhenko.ask.toKeyboard
 import org.telegram.telegrambots.meta.api.objects.Update
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup
 import org.telegram.telegrambots.meta.bots.AbsSender
 
 class QuestionStageProcessor(private val questionStorage: QuestionStorage) : StageProcessor {
