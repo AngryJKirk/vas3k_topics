@@ -7,6 +7,7 @@ import dev.storozhenko.ask.processors.EditTopicStageProcessor
 import dev.storozhenko.ask.processors.FinalStageProcessor
 import dev.storozhenko.ask.processors.NoneStageProcessor
 import dev.storozhenko.ask.processors.QuestionStageProcessor
+import dev.storozhenko.ask.processors.SendStageProcessor
 import dev.storozhenko.ask.processors.TitleStageProcessor
 import dev.storozhenko.ask.processors.TopicStageProcessor
 import dev.storozhenko.ask.services.Bot
@@ -44,7 +45,8 @@ fun main() {
         NoneStageProcessor(),
         QuestionStageProcessor(questionStorage),
         TitleStageProcessor(questionStorage),
-        TopicStageProcessor(questionStorage)
+        TopicStageProcessor(questionStorage),
+        SendStageProcessor()
     )
     telegramBotsApi.registerBot(
         Bot(

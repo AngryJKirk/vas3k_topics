@@ -44,11 +44,17 @@ class Bot(
 
     private fun processStages(update: Update) {
         val userId = update.message.from.id
+
         val stage = stageStorage.getCurrentStage(userId)
         log.info("Current stage is $stage")
         val processor = stageProcessorsMap[stage]
             ?: throw IllegalStateException("Must be a stage processor for all stages, stage: $stage")
-        val nextStage = processor.process(update).invoke(this)
+        val nextStage = if (update.message.hasText()) {
+            processor.process(update).invoke(this)
+        } else {
+            this.send(update, "Принимаем только текст, попробуй еще раз")
+            processor.ownedStage()
+        }
         log.info("Next stage is $nextStage")
         stageStorage.updateStage(userId, nextStage)
     }
