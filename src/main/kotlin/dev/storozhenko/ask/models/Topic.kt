@@ -5,15 +5,15 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMar
 import java.lang.IllegalStateException
 
 enum class Topic(val topicName: String) {
-    TECH("Тех"),
-    FIN("Финансовая независимость"),
-    ABOARD("Трактор"),
-    DIY("DIY"),
-    CARS("Авточат"),
-    HEALTH("ЗОЖ"),
-    TRAVEL("Тревел"),
-    COOKING("Кухня"),
-    PIZDUKI("Карапузы");
+    TECH("🤖 Технологии"),
+    FIN("💸 Финансы"),
+    ABOARD("🚜 Трактор"),
+    DIY("🛠 DIY"),
+    CARS("🚘 Авто"),
+    HEALTH("🏃‍♀️ ЗОЖ"),
+    TRAVEL("⛰ Тревел"),
+    COOKING("🍔 Кухня"),
+    PIZDUKI("👼 Карапузы");
 
     companion object {
         fun getByName(value: String): Topic? {
