@@ -15,7 +15,7 @@ class EditTitleStageProcessor(
     override fun process(update: Update): (AbsSender) -> Stage {
         val text = update.message.text
             ?: return {
-                it.send(update, "Чтобы исправить заголовок надо ввести текст")
+                it.send(update, "Чтобы исправить заголовок, надо ввести текст")
                 Stage.TITLE_EDIT
             }
         questionStorage.addTitle(update, text)
