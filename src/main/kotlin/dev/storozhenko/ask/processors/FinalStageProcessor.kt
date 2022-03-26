@@ -6,13 +6,16 @@ import dev.storozhenko.ask.services.Sender
 import dev.storozhenko.ask.models.Stage
 import dev.storozhenko.ask.models.Topic
 import dev.storozhenko.ask.send
+import dev.storozhenko.ask.toKeyboard
 import org.telegram.telegrambots.meta.api.objects.Update
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard
 import org.telegram.telegrambots.meta.bots.AbsSender
 
 class FinalStageProcessor(
     private val questionStorage: QuestionStorage,
     private val sender: Sender
 ) : StageProcessor {
+    private val startKeyboard = listOf("/start").toKeyboard()
     override fun ownedStage() = Stage.FINAL
 
     override fun process(update: Update): (AbsSender) -> Stage {
@@ -41,7 +44,10 @@ class FinalStageProcessor(
             }
             EditButton.DONE -> {
                 {
-                    it.send(update, "Ура, твой вопрос сейчас отправится. Чтобы отправить еще один нажми /start")
+                    it.send(
+                        update,
+                        "Ура, твой вопрос сейчас отправится. Чтобы отправить еще один нажми /start"
+                    ) { replyMarkup = startKeyboard }
                     val question = questionStorage.getQuestion(update)
                     sender.broadcast(question, it)
                     questionStorage.deleteQuestion(update)
@@ -50,7 +56,7 @@ class FinalStageProcessor(
             }
             EditButton.CANCEL -> {
                 {
-                    it.send(update, "Вопрос отменен, чтобы начать заново нажми /start")
+                    it.send(update, "Вопрос отменен, чтобы начать заново нажми /start") { replyMarkup = startKeyboard }
                     questionStorage.deleteQuestion(update)
                     Stage.NONE
                 }
