@@ -13,7 +13,8 @@ enum class Topic(val topicName: String) {
     HEALTH("🏃‍♀️ ЗОЖ"),
     TRAVEL("⛰ Тревел"),
     COOKING("🍔 Кухня"),
-    PIZDUKI("👼 Карапузы");
+    PIZDUKI("👼 Карапузы"),
+    OTHER("\uD83E\uDD14 Другое");
 
     companion object {
         fun getByName(value: String): Topic? {
