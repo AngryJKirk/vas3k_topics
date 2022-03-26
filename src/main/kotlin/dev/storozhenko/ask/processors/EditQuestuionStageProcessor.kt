@@ -15,7 +15,7 @@ class EditQuestuionStageProcessor(
     override fun process(update: Update): (AbsSender) -> Stage {
         val text = update.message.text
             ?: return {
-                it.send(update, "Чтобы исправить вопрос надо ввести текст")
+                it.send(update, "Чтобы исправить вопрос, надо ввести текст")
                 Stage.QUESTION_EDIT
             }
         questionStorage.addQuestionText(update, text)

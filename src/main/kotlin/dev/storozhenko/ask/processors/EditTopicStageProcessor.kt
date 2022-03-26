@@ -16,7 +16,7 @@ class EditTopicStageProcessor(
     override fun process(update: Update): (AbsSender) -> Stage {
         val text = update.message.text
             ?: return {
-                it.send(update, "Чтобы исправить топик надо нажать кнопку")
+                it.send(update, "Чтобы исправить тему, надо нажать кнопку")
                 Stage.TOPIC_EDIT
             }
         val topic = Topic.getByName(text)
@@ -27,7 +27,7 @@ class EditTopicStageProcessor(
         questionStorage.addTopic(update, topic)
         return {
             it.send(update, questionStorage.getQuestion(update).toString())
-            it.send(update, "Топик исправлен, что дальше?") { replyMarkup = EditButton.getKeyboard() }
+            it.send(update, "Тема исправлена, что дальше?") { replyMarkup = EditButton.getKeyboard() }
             Stage.FINAL
         }
     }

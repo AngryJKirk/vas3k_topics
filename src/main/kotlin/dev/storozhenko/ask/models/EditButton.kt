@@ -5,9 +5,9 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMar
 
 enum class EditButton(val textName: String) {
 
-    EDIT_TEXT("Изменить вопрос"),
-    EDIT_TITLE("Изменить заголовок"),
     EDIT_TOPIC("Изменить тему"),
+    EDIT_TITLE("Изменить заголовок"),
+    EDIT_TEXT("Изменить текст"),
     CANCEL("Отменить вопрос"),
     DONE("Все норм, засылай");
 

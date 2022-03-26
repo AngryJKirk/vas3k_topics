@@ -8,6 +8,6 @@ data class Question(
 ) {
 
     override fun toString(): String {
-        return "Топик: ${topic.topicName}\nЗаголовок: $title\nТекст: $text"
+        return "Тема: ${topic.topicName}\nЗаголовок: $title\nТекст: $text"
     }
 }
