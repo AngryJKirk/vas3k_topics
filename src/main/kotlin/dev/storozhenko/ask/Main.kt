@@ -48,6 +48,7 @@ fun main() {
         TopicStageProcessor(questionStorage),
         SendStageProcessor()
     )
+
     telegramBotsApi.registerBot(
         Bot(
             botToken,
@@ -55,6 +56,7 @@ fun main() {
             StageStorage(mongoClient),
             questionStorage,
             banList,
+            getResource("help.txt"),
             processors
         )
     )

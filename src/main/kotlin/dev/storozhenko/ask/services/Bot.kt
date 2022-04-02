@@ -14,6 +14,7 @@ class Bot(
     private val stageStorage: StageStorage,
     private val questionStorage: QuestionStorage,
     private val banList: Set<Long>,
+    private val helpText: String,
     stageProcessors: List<StageProcessor>
 ) : TelegramLongPollingBot() {
     private val log = getLogger()
@@ -30,10 +31,15 @@ class Bot(
                 if (userId in banList) {
                     this.send(update, "\uD83D\uDEABВы в бане\uD83D\uDEAB")
                 }
+
                 if (update.message.hasText() && update.message.text.startsWith("/start")) {
                     questionStorage.deleteQuestion(update)
                     stageStorage.updateStage(userId, stage = Stage.NONE)
-                    this.send(update, "Рассылаю вопросики")
+                    this.send(update, helpText)
+                }
+
+                if (update.message.hasText() && update.message.text.startsWith("/help")) {
+                    this.send(update, helpText)
                 }
                 runCatching { processStages(update) }
                     .onFailure { e ->
