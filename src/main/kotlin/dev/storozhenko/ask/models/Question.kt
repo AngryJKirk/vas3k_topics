@@ -2,6 +2,7 @@ package dev.storozhenko.ask.models
 
 import dev.storozhenko.ask.bold
 import dev.storozhenko.ask.italic
+import dev.storozhenko.ask.link
 
 data class Question(
     val topic: Topic,
@@ -11,6 +12,10 @@ data class Question(
 ) {
 
     override fun toString(): String {
-        return "${topic.topicName.bold()}\n${title.bold()}\n${text.italic()}"
+        return listOf(
+            topic.topicName.bold(),
+            title.bold() + "от ${author.second.link("tg://user?id=${author.first}")}",
+            text.italic()
+        ).joinToString("\n\n")
     }
 }
