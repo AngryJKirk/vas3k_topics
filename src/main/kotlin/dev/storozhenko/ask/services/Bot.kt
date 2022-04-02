@@ -33,6 +33,7 @@ class Bot(
                 if (update.message.hasText() && update.message.text.startsWith("/start")) {
                     questionStorage.deleteQuestion(update)
                     stageStorage.updateStage(userId, stage = Stage.NONE)
+                    this.send(update, "Рассылаю вопросики")
                 }
                 runCatching { processStages(update) }
                     .onFailure { e ->

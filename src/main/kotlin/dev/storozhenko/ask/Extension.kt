@@ -44,3 +44,15 @@ fun Collection<String>.toKeyboard(chunkSize: Int = 2): ReplyKeyboardMarkup {
         oneTimeKeyboard = true
     }
 }
+
+fun String.link(link: String): String {
+    return "[$this]($link)"
+}
+
+fun String.bold(): String {
+    return "*$this*"
+}
+
+fun String.italic(): String {
+    return "_${this}_"
+}
