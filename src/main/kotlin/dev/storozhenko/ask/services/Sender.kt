@@ -36,7 +36,7 @@ class Sender(
                     .text(question.toString() + "\n\n" + getLinkToChannel(channelMessageId))
                     .build()
                 val chatMessageId = absSender.execute(message).messageId
-                val linkToChat = getLinkToChat(it, chatMessageId, question.topic)
+                val linkToChat = getLinkToChat(chatMessageId, it, question.topic)
 
                 absSender.execute(
                     EditMessageText.builder()
@@ -53,12 +53,14 @@ class Sender(
     }
 
     private fun getLinkToChannel(channelMessageId: Int): String {
+        val linkChannelId = channelMessageId.toString().replace("-100", "")
         return "Этот вопрос в канале"
-            .link("https://t.me/$channelId/$channelMessageId")
+            .link("https://t.me/$linkChannelId/$channelMessageId")
     }
 
-    private fun getLinkToChat(chatMessageId: String, chatId: Int, topic: Topic): String {
+    private fun getLinkToChat(chatMessageId: Int, chatId: String, topic: Topic): String {
+        val linkToChatId = chatId.replace("-100", "")
         return "Этот вопрос в ${topic.topicName}"
-            .link("https://t.me/с/$chatId/$chatMessageId")
+            .link("https://t.me/с/$linkToChatId/$chatMessageId")
     }
 }
