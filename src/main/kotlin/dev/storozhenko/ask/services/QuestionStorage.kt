@@ -59,7 +59,8 @@ class QuestionStorage(client: MongoClient) {
 
     private fun getAuthor(update: Update): Pair<Long, String> {
         val from = update.message.from
-        return from.id to listOf(from.firstName, from.lastName).joinToString(separator = " ")
+        val name = listOfNotNull(from.firstName, from.lastName).joinToString(separator = " ")
+        return from.id to name
     }
 
     private fun findOrCreate(update: Update): QuestionWithId {

@@ -14,7 +14,7 @@ data class Question(
     override fun toString(): String {
         return listOf(
             topic.topicName.bold(),
-            title.bold() + "от ${author.second.link("tg://user?id=${author.first}")}",
+            title.bold() + " от ${author.second.link("tg://user?id=${author.first}")}",
             text.italic()
         ).joinToString("\n\n")
     }
