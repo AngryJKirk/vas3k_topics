@@ -55,7 +55,7 @@ class Sender(
     private fun getLinkToChannel(channelMessageId: Int): String {
         val linkChannelId = channelId.replace("-100", "")
         return "Этот вопрос в канале"
-            .link("https://t.me/$linkChannelId/$channelMessageId")
+            .link("https://t.me/c/$linkChannelId/$channelMessageId")
     }
 
     private fun getLinkToChat(chatMessageId: Int, chatId: String, topic: Topic): String {
