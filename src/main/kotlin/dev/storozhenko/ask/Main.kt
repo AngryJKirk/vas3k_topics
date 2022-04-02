@@ -10,6 +10,7 @@ import dev.storozhenko.ask.processors.QuestionStageProcessor
 import dev.storozhenko.ask.processors.SendStageProcessor
 import dev.storozhenko.ask.processors.TitleStageProcessor
 import dev.storozhenko.ask.processors.TopicStageProcessor
+import dev.storozhenko.ask.services.BanStorage
 import dev.storozhenko.ask.services.Bot
 import dev.storozhenko.ask.services.QuestionStorage
 import dev.storozhenko.ask.services.Sender
@@ -33,7 +34,7 @@ fun main() {
     val mongoClient = KMongo.createClient("mongodb://$mongoHost")
     val chats = getChats()
     val channelId = getResource("channels.csv")
-    val banList = getBanList()
+    val banStorage = BanStorage(mongoClient)
     val sender = Sender(chats, channelId)
     val telegramBotsApi = TelegramBotsApi(DefaultBotSession::class.java)
     val questionStorage = QuestionStorage(mongoClient)
@@ -55,19 +56,13 @@ fun main() {
             botUsername,
             StageStorage(mongoClient),
             questionStorage,
-            banList,
+            banStorage,
             getResource("help.txt"),
             processors
         )
     )
     log.info("The application has started")
 }
-
-private fun getBanList() = getResource("banlist.csv")
-    .lines()
-    .filter(String::isNotBlank)
-    .map(String::toLong)
-    .toSet()
 
 private fun getChats() = getResource("chats.csv").lines()
     .map { it.split(";") }

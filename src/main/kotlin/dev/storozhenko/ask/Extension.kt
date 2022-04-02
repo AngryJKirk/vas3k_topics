@@ -3,6 +3,14 @@ package dev.storozhenko.ask
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.objects.Message
 import org.telegram.telegrambots.meta.api.objects.Update
+import org.telegram.telegrambots.meta.api.objects.User
+import org.telegram.telegrambots.meta.api.objects.chatmember.ChatMember
+import org.telegram.telegrambots.meta.api.objects.chatmember.ChatMemberAdministrator
+import org.telegram.telegrambots.meta.api.objects.chatmember.ChatMemberBanned
+import org.telegram.telegrambots.meta.api.objects.chatmember.ChatMemberLeft
+import org.telegram.telegrambots.meta.api.objects.chatmember.ChatMemberMember
+import org.telegram.telegrambots.meta.api.objects.chatmember.ChatMemberOwner
+import org.telegram.telegrambots.meta.api.objects.chatmember.ChatMemberRestricted
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow
@@ -58,4 +66,32 @@ fun String.bold(): String {
 
 fun String.italic(): String {
     return "_${this}_"
+}
+
+fun ChatMember.user(): User {
+    return when (status) {
+        ChatMemberAdministrator.STATUS -> (this as ChatMemberAdministrator).user
+        ChatMemberBanned.STATUS -> (this as ChatMemberBanned).user
+        ChatMemberLeft.STATUS -> (this as ChatMemberLeft).user
+        ChatMemberMember.STATUS -> (this as ChatMemberMember).user
+        ChatMemberOwner.STATUS -> (this as ChatMemberOwner).user
+        ChatMemberRestricted.STATUS -> (this as ChatMemberRestricted).user
+        else -> throw RuntimeException("Can't find mapping for user $this")
+    }
+}
+
+fun User.name(link: Boolean): String {
+    val name = if (this.userName != null) {
+        "@${this.userName}"
+    } else if (lastName != null) {
+        "${this.firstName} ${this.lastName}"
+    } else {
+        this.firstName
+    }
+
+    return if (link) {
+        name.link("tg://user?id=${this.id}")
+    } else {
+        name
+    }
 }
