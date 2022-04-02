@@ -1,5 +1,8 @@
 package dev.storozhenko.ask.models
 
+import dev.storozhenko.ask.bold
+import dev.storozhenko.ask.italic
+
 data class Question(
     val topic: Topic,
     val title: String,
@@ -8,6 +11,6 @@ data class Question(
 ) {
 
     override fun toString(): String {
-        return "Тема: ${topic.topicName}\nЗаголовок: $title\nТекст: $text"
+        return "${topic.topicName.bold()}\n${title.bold()}\n${text.italic()}"
     }
 }

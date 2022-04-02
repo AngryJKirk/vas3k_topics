@@ -1,9 +1,12 @@
 package dev.storozhenko.ask.services
 
 import dev.storozhenko.ask.getLogger
+import dev.storozhenko.ask.link
 import dev.storozhenko.ask.models.Question
 import dev.storozhenko.ask.models.Topic
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageMedia
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText
 import org.telegram.telegrambots.meta.bots.AbsSender
 
 class Sender(
@@ -16,23 +19,46 @@ class Sender(
         val channelMessage = SendMessage.builder()
             .chatId(channelId)
             .text(question.toString())
+            .parseMode("Markdown")
             .build()
-        absSender.execute(channelMessage)
+        val channelMessageId = absSender.execute(channelMessage).messageId
         if (question.topic == Topic.OTHER) {
             return
         }
-
+        // ебаная хуйня так как ссылка только на последнее сообщение,
+        // все работает покуда для каждого топика только один чат
         val chatIds = chats[question.topic] ?: return
         chatIds.forEach {
             runCatching {
                 val message = SendMessage.builder()
                     .chatId(it)
-                    .text(question.toString())
+                    .parseMode("Markdown")
+                    .text(question.toString() + "\n\n" + getLinkToChannel(channelMessageId))
                     .build()
-                absSender.execute(message)
+                val chatMessageId = absSender.execute(message).messageId
+                val linkToChat = getLinkToChat(it, chatMessageId, question.topic)
+
+                absSender.execute(
+                    EditMessageText.builder()
+                        .chatId(channelId)
+                        .messageId(channelMessageId)
+                        .parseMode("Markdown")
+                        .text(question.toString() + "\n\n" + linkToChat)
+                        .build()
+                )
             }.onFailure { e ->
                 log.warn("Could not send the message to $it", e)
             }
         }
+    }
+
+    private fun getLinkToChannel(channelMessageId: Int): String {
+        return "Этот вопрос в канале"
+            .link("https://t.me/$channelId/$channelMessageId")
+    }
+
+    private fun getLinkToChat(chatMessageId: String, chatId: Int, topic: Topic): String {
+        return "Этот вопрос в ${topic.topicName}"
+            .link("https://t.me/с/$chatId/$chatMessageId")
     }
 }
