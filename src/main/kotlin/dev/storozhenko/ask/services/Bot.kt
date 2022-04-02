@@ -40,6 +40,7 @@ class Bot(
 
                 if (update.message.hasText() && update.message.text.startsWith("/help")) {
                     this.send(update, helpText)
+                    return
                 }
                 runCatching { processStages(update) }
                     .onFailure { e ->
