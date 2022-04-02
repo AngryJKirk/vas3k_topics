@@ -33,7 +33,7 @@ class FinalStageProcessor(
             EditButton.EDIT_TOPIC -> {
                 {
                     it.send(update, "Давай поправим тему вопроса") { replyMarkup = Topic.getKeyboard() }
-                    Stage.TITLE_EDIT
+                    Stage.TOPIC_EDIT
                 }
             }
             EditButton.EDIT_TITLE -> {
