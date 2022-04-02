@@ -18,6 +18,10 @@ class Sender(
             .text(question.toString())
             .build()
         absSender.execute(channelMessage)
+        if (question.topic == Topic.OTHER) {
+            return
+        }
+
         val chatIds = chats[question.topic] ?: return
         chatIds.forEach {
             runCatching {
