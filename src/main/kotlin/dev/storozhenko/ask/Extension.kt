@@ -15,6 +15,9 @@ fun AbsSender.send(
 ): Message {
 
     val messageObj = SendMessage(update.chatIdString(), text)
+        .apply {
+            parseMode = "Markdown"
+        }
     val message = messageObj.apply(customization)
 
     return this.execute(message)
