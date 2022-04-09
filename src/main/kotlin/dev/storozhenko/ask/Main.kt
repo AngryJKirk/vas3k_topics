@@ -35,9 +35,9 @@ fun main() {
     val chats = getChats()
     val channelId = getResource("channels.csv")
     val banStorage = BanStorage(mongoClient)
-    val sender = Sender(chats, channelId)
     val telegramBotsApi = TelegramBotsApi(DefaultBotSession::class.java)
     val questionStorage = QuestionStorage(mongoClient)
+    val sender = Sender(chats, channelId, questionStorage)
     val processors = listOf(
         EditQuestuionStageProcessor(questionStorage),
         EditTitleStageProcessor(questionStorage),
@@ -58,6 +58,7 @@ fun main() {
             questionStorage,
             banStorage,
             getResource("help.txt"),
+            channelId,
             processors
         )
     )

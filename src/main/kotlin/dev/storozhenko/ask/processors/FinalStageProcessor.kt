@@ -44,13 +44,14 @@ class FinalStageProcessor(
             }
             EditButton.DONE -> {
                 {
+
+                    val question = questionStorage.getQuestion(update)
+                    val link = sender.broadcast(update, question, it)
+                    questionStorage.deleteQuestion(update)
                     it.send(
                         update,
-                        "Ура, твой вопрос сейчас отправится. Чтобы отправить еще один нажми /start"
+                        "Ура, твой вопрос сейчас отправится. Чтобы отправить еще один нажми /start\n\n$link"
                     ) { replyMarkup = startKeyboard }
-                    val question = questionStorage.getQuestion(update)
-                    sender.broadcast(question, it)
-                    questionStorage.deleteQuestion(update)
                     Stage.SEND
                 }
             }

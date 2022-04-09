@@ -80,8 +80,8 @@ fun ChatMember.user(): User {
     }
 }
 
-fun User.name(link: Boolean): String {
-    val name = if (this.userName != null) {
+fun User.name(link: Boolean, nameOnly: Boolean = false): String {
+    val name = if (this.userName != null && !nameOnly) {
         "@${this.userName}"
     } else if (lastName != null) {
         "${this.firstName} ${this.lastName}"
@@ -94,4 +94,8 @@ fun User.name(link: Boolean): String {
     } else {
         name
     }
+}
+
+fun String.cleanId(): String {
+    return this.replace("-100", "")
 }

@@ -1,7 +1,11 @@
 package dev.storozhenko.ask.services
 
+import dev.storozhenko.ask.bold
 import dev.storozhenko.ask.chatIdString
+import dev.storozhenko.ask.cleanId
 import dev.storozhenko.ask.getLogger
+import dev.storozhenko.ask.italic
+import dev.storozhenko.ask.link
 import dev.storozhenko.ask.models.Stage
 import dev.storozhenko.ask.name
 import dev.storozhenko.ask.processors.StageProcessor
@@ -9,7 +13,9 @@ import dev.storozhenko.ask.send
 import dev.storozhenko.ask.user
 import org.slf4j.MDC
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
+import org.telegram.telegrambots.meta.api.methods.ParseMode
 import org.telegram.telegrambots.meta.api.methods.groupadministration.GetChatAdministrators
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage
 import org.telegram.telegrambots.meta.api.objects.Update
 import org.telegram.telegrambots.meta.api.objects.chatmember.ChatMemberAdministrator
@@ -22,6 +28,7 @@ class Bot(
     private val questionStorage: QuestionStorage,
     private val banStorage: BanStorage,
     private val helpText: String,
+    private val channelId: String,
     stageProcessors: List<StageProcessor>
 ) : TelegramLongPollingBot() {
     private val log = getLogger()
@@ -32,44 +39,110 @@ class Bot(
     override fun getBotUsername() = botName
 
     override fun onUpdateReceived(update: Update) {
-        val chat = update.message.chat
+        log.info("Received update: $update")
+        MDC.put("chatId", update.message?.chatId?.toString())
+        MDC.put("userId", update.message?.from?.id?.toString())
+        runCatching { processUpdate(update) }.onFailure {
+            log.error("Error processing update: $update", it)
+        }
+        MDC.clear()
+    }
+
+    private fun processUpdate(update: Update) {
+        val chat = update.message?.chat
+        if (chat == null) {
+            log.info("Received update without chat")
+            return
+        }
         if (chat.isGroupChat || chat.isChannelChat || chat.isSuperGroupChat) {
-            if (update.message.hasText() && update.message.text.startsWith("/ban")) {
-                processBan(update)
-                return
-            }
+            processGroupChat(update)
         }
         if (chat.isUserChat) {
-            val userId = update.message.from.id
-            MDC.putCloseable("user_id", userId.toString()).use {
-                val ban = banStorage.isBanned(userId)
+            processUserChat(update)
+        }
+    }
 
-                if (ban != null) {
-                    this.send(
-                        update,
-                        "\uD83D\uDEABВы забанены по причине \"${ban.reason}\", в течение недели бан спадет.\uD83D\uDEAB"
-                    )
-                    return
-                }
-                if (update.message.hasText()) {
-                    if (update.message.text.startsWith("/start")) {
-                        questionStorage.deleteQuestion(update)
-                        stageStorage.updateStage(userId, stage = Stage.NONE)
-                        this.send(update, helpText)
-                    }
-
-                    if (update.message.text.startsWith("/help")) {
-                        this.send(update, helpText)
-                        return
-                    }
-                }
-
-                runCatching { processStages(update) }
-                    .onFailure { e ->
-                        log.error("Could not process message: $update", e)
-                    }
+    private fun processGroupChat(update: Update) {
+        if (update.message.hasText() && update.message.text.startsWith("/ban")) {
+            processBan(update)
+            log.info("Banned user ${update.message.from.id}")
+        }
+        if (update.message.hasText() && update.message.isReply) {
+            if (update.message.replyToMessage.from.userName == botUsername) {
+                processChatReply(update)
+                log.info("Processed chat reply")
+            }
+            if (update.message.replyToMessage.isAutomaticForward == true) {
+                processChannelReply(update)
+                log.info("Processed channel reply")
             }
         }
+    }
+
+    private fun processUserChat(update: Update) {
+        val userId = update.message.from.id
+        MDC.putCloseable("user_id", userId.toString()).use {
+            val ban = banStorage.isBanned(userId)
+
+            if (ban != null) {
+                this.send(
+                    update,
+                    "\uD83D\uDEABВы забанены по причине \"${ban.reason}\", в течение недели бан спадет.\uD83D\uDEAB"
+                )
+                log.info("User $userId is banned, shall not pass")
+                return
+            }
+            if (update.message.hasText()) {
+                if (update.message.text.startsWith("/start")) {
+                    log.info("User (re)started the bot")
+                    questionStorage.deleteQuestion(update)
+                    stageStorage.updateStage(userId, stage = Stage.NONE)
+                    this.send(update, helpText)
+                }
+
+                if (update.message.text.startsWith("/help")) {
+                    log.info("User requested help")
+                    this.send(update, helpText)
+                    return
+                }
+            }
+
+            runCatching { processStages(update) }
+                .onFailure { e ->
+                    log.error("Could not process message: $update", e)
+                }
+        }
+    }
+
+    private fun processChannelReply(update: Update) {
+        val messageId = update.message.replyToMessage.forwardFromMessageId.toString()
+        val question = questionStorage.findByChannelMessageId(messageId) ?: return
+        processReply(question, update)
+    }
+
+    private fun processChatReply(update: Update) {
+        val message = update.message
+        val channelMessageId = message.replyToMessage.messageId.toString()
+        val question = questionStorage.findByChatMessageId(
+            message.chat.id.toString(),
+            channelMessageId
+        ) ?: return
+
+        processReply(question, update)
+    }
+
+    private fun processReply(question: QuestionWithId, update: Update) {
+        val responseChatId = update.message.chat.id.toString().cleanId()
+        val responseMessageId = update.message.messageId.toString()
+        val responseLink = "\uD83D\uDCAC Ссылка на ответ".link("https://t.me/c/$responseChatId/$responseMessageId")
+        val questionLink =
+            "❓ Ссылка на ваш вопрос".link("https://t.me/c/${channelId.cleanId()}/${question.channelMessageId}")
+        val responseAuthor = update.message.from.name(link = true, nameOnly = true)
+        val message =
+            "Вам ответ на вопрос \"${question.title?.bold()}\" от $responseAuthor: \n\n ${update.message.text.italic()}" +
+                "\n\n$responseLink\n\n" + questionLink
+        execute(SendMessage(question.authorId, message)
+            .apply { parseMode = ParseMode.MARKDOWN })
     }
 
     private val adminStatuses = setOf(ChatMemberAdministrator.STATUS, ChatMemberOwner.STATUS)
