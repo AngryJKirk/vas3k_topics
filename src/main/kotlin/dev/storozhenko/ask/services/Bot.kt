@@ -29,6 +29,7 @@ class Bot(
     private val banStorage: BanStorage,
     private val helpText: String,
     private val channelId: String,
+    private val logStorage: LogStorage,
     stageProcessors: List<StageProcessor>
 ) : TelegramLongPollingBot() {
     private val log = getLogger()
@@ -40,6 +41,7 @@ class Bot(
 
     override fun onUpdateReceived(update: Update) {
         log.info("Received update: $update")
+        logStorage.save(update)
         MDC.put("chatId", update.message?.chatId?.toString())
         MDC.put("userId", update.message?.from?.id?.toString())
         runCatching { processUpdate(update) }.onFailure {
@@ -116,7 +118,11 @@ class Bot(
 
     private fun processChannelReply(update: Update) {
         val messageId = update.message.replyToMessage.forwardFromMessageId.toString()
-        val question = questionStorage.findByChannelMessageId(messageId) ?: return
+        val question = questionStorage.findByChannelMessageId(messageId)
+        if (question == null) {
+            log.info("Could not find question for channel reply, messageId: $messageId")
+            return
+        }
         processReply(question, update)
     }
 
@@ -126,7 +132,11 @@ class Bot(
         val question = questionStorage.findByChatMessageId(
             message.chat.id.toString(),
             channelMessageId
-        ) ?: return
+        )
+        if (question == null) {
+            log.info("Could not find question for chat reply, chatId: ${message.chat.id}, channelMessageId: $channelMessageId")
+            return
+        }
 
         processReply(question, update)
     }

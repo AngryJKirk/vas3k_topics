@@ -68,7 +68,7 @@ class QuestionStorage(client: MongoClient) {
     }
 
     fun findByChatMessageId(chatId: String, chatMessageId: String): QuestionWithId? {
-        return openQuestions.findOne(
+        return closedQuestions.findOne(
             and(
                 QuestionWithId::chatMessageId eq chatMessageId,
                 QuestionWithId::chatId eq chatId
@@ -77,7 +77,7 @@ class QuestionStorage(client: MongoClient) {
     }
 
     fun findByChannelMessageId(channelMessageId: String): QuestionWithId? {
-        return openQuestions.findOne(QuestionWithId::channelMessageId eq channelMessageId)
+        return closedQuestions.findOne(QuestionWithId::channelMessageId eq channelMessageId)
     }
 
     fun getQuestion(update: Update): Question {

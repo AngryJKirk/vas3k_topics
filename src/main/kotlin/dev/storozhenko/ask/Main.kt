@@ -12,6 +12,7 @@ import dev.storozhenko.ask.processors.TitleStageProcessor
 import dev.storozhenko.ask.processors.TopicStageProcessor
 import dev.storozhenko.ask.services.BanStorage
 import dev.storozhenko.ask.services.Bot
+import dev.storozhenko.ask.services.LogStorage
 import dev.storozhenko.ask.services.QuestionStorage
 import dev.storozhenko.ask.services.Sender
 import dev.storozhenko.ask.services.StageStorage
@@ -38,6 +39,7 @@ fun main() {
     val telegramBotsApi = TelegramBotsApi(DefaultBotSession::class.java)
     val questionStorage = QuestionStorage(mongoClient)
     val sender = Sender(chats, channelId, questionStorage)
+    val logStorage = LogStorage(mongoClient)
     val processors = listOf(
         EditQuestuionStageProcessor(questionStorage),
         EditTitleStageProcessor(questionStorage),
@@ -59,6 +61,7 @@ fun main() {
             banStorage,
             getResource("help.txt"),
             channelId,
+            logStorage,
             processors
         )
     )
