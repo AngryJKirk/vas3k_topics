@@ -23,7 +23,8 @@ class Sender(
             .text(question.toString())
             .parseMode("Markdown")
             .build()
-        val channelMessageId = absSender.execute(channelMessage).messageId
+        val execute = absSender.execute(channelMessage)
+        val channelMessageId = execute.messageId
         val linkToChannel = getLinkToChannel(channelId, channelMessageId)
         questionStorage.addChannelMessageId(update, channelMessageId.toString())
         val chatId = chats[question.topic]?.first() ?: return linkToChannel

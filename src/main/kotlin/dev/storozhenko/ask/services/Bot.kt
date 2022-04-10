@@ -7,6 +7,7 @@ import dev.storozhenko.ask.getLogger
 import dev.storozhenko.ask.italic
 import dev.storozhenko.ask.link
 import dev.storozhenko.ask.models.Stage
+import dev.storozhenko.ask.models.Topic
 import dev.storozhenko.ask.name
 import dev.storozhenko.ask.processors.StageProcessor
 import dev.storozhenko.ask.send
@@ -29,12 +30,13 @@ class Bot(
     private val banStorage: BanStorage,
     private val helpText: String,
     private val channelId: String,
+    private val chatInvites: Map<Topic, String>,
     private val logStorage: LogStorage,
     stageProcessors: List<StageProcessor>
 ) : TelegramLongPollingBot() {
+    private val telegramInternalUserId = 777000L
     private val log = getLogger()
     private val stageProcessorsMap = stageProcessors.associateBy(StageProcessor::ownedStage)
-
     override fun getBotToken() = token
 
     override fun getBotUsername() = botName
@@ -56,12 +58,29 @@ class Bot(
             log.info("Received update without chat")
             return
         }
+        if (update.message.from.id == telegramInternalUserId) {
+            processForwardUpdate(update)
+            return
+        }
         if (chat.isGroupChat || chat.isChannelChat || chat.isSuperGroupChat) {
             processGroupChat(update)
         }
         if (chat.isUserChat) {
             processUserChat(update)
         }
+    }
+
+    private fun processForwardUpdate(update: Update) {
+        val forwardFromMessageId = update.message.forwardFromMessageId?.toString()
+        if (forwardFromMessageId == null) {
+            log.info("Received update without forwardFromMessageId")
+            return
+        }
+        questionStorage.addForwardedInfo(
+            forwardFromMessageId,
+            update.message.messageId.toString(),
+            update.message.chatId.toString()
+        )
     }
 
     private fun processGroupChat(update: Update) {
@@ -123,7 +142,7 @@ class Bot(
             log.info("Could not find question for channel reply, messageId: $messageId")
             return
         }
-        processReply(question, update)
+        processReply(question, update, inviteLink = false)
     }
 
     private fun processChatReply(update: Update) {
@@ -138,21 +157,48 @@ class Bot(
             return
         }
 
-        processReply(question, update)
+        processReply(question, update, inviteLink = true)
+        forwardToChannelChat(question, update)
     }
 
-    private fun processReply(question: QuestionWithId, update: Update) {
+    private fun processReply(question: QuestionWithId, update: Update, inviteLink: Boolean) {
         val responseChatId = update.message.chat.id.toString().cleanId()
         val responseMessageId = update.message.messageId.toString()
-        val responseLink = "\uD83D\uDCAC Ссылка на ответ".link("https://t.me/c/$responseChatId/$responseMessageId")
+        val responseLink = "\uD83D\uDCACответ".link("https://t.me/c/$responseChatId/$responseMessageId")
         val questionLink =
-            "❓ Ссылка на ваш вопрос".link("https://t.me/c/${channelId.cleanId()}/${question.channelMessageId}")
+            "❓ Ссылка на ваш вопрос".link("https://t.me/c/${channelId.cleanId()}/${question.channelMessageId}?comment=1")
         val responseAuthor = update.message.from.name(link = true, nameOnly = true)
         val message =
-            "Вам ответ на вопрос \"${question.title?.bold()}\" от $responseAuthor: \n\n ${update.message.text.italic()}" +
-                "\n\n$responseLink\n\n" + questionLink
+            if (inviteLink) {
+                val chatInviteLink = getChatInviteLink(question)
+                "Вам $responseLink на вопрос \"${question.title?.bold()}\" от $responseAuthor из чата $chatInviteLink:\n\n ${update.message.text.italic()}" +
+                    "\n\n" + questionLink
+            } else {
+                "Вам $responseLink на вопрос \"${question.title?.bold()}\" от $responseAuthor из чата канала:\n\n ${update.message.text.italic()}" +
+                    "\n\n" + questionLink
+            }
         execute(SendMessage(question.authorId, message)
             .apply { parseMode = ParseMode.MARKDOWN })
+    }
+
+    private fun forwardToChannelChat(question: QuestionWithId, update: Update) {
+        val forwardedChatId = question.forwardedChatId
+        if (forwardedChatId == null) {
+            log.info("Could not find forwarded chat id for question: $question")
+            return
+        }
+        val responseChatId = update.message.chat.id.toString().cleanId()
+        val responseMessageId = update.message.messageId.toString()
+        val responseLink = "\uD83D\uDCACОтвет".link("https://t.me/c/$responseChatId/$responseMessageId")
+        val responseAuthor = update.message.from.name(link = true, nameOnly = true)
+        val chatLink = getChatInviteLink(question)
+        val message =
+            "$responseLink от $responseAuthor из чата $chatLink:\n\n${update.message.text.italic()}"
+        execute(SendMessage(forwardedChatId, message)
+            .apply {
+                replyToMessageId = question.forwardedMessageId?.toInt()
+                parseMode = ParseMode.MARKDOWN
+            })
     }
 
     private val adminStatuses = setOf(ChatMemberAdministrator.STATUS, ChatMemberOwner.STATUS)
@@ -220,5 +266,14 @@ class Bot(
 
     private fun logErrorOnDeleting(exception: Throwable) {
         log.error("Exception while deleting message: ${exception.message}", exception)
+    }
+
+    private fun getChatInviteLink(question: QuestionWithId): String {
+        if (question.topic == null) {
+            throw IllegalStateException("Question must have topic")
+        }
+        val topic = Topic.getByNameNotNull(question.topic)
+        val inviteLink = chatInvites[topic] ?: throw IllegalStateException("No chat invite for topic $topic")
+        return topic.topicName.link(inviteLink)
     }
 }

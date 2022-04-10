@@ -19,6 +19,8 @@ data class QuestionWithId(
     val title: String? = null,
     val channelMessageId: String? = null,
     val chatMessageId: String? = null,
+    val forwardedMessageId: String? = null,
+    val forwardedChatId: String? = null,
     val chatId: String? = null,
 )
 
@@ -114,5 +116,15 @@ class QuestionStorage(client: MongoClient) {
         } else {
             foundQuestion
         }
+    }
+
+    fun addForwardedInfo(channelMessageId: String, forwardedMessageId: String, forwardedChatId: String) {
+        closedQuestions.updateOne(
+            QuestionWithId::channelMessageId eq channelMessageId,
+            listOf(
+                setValue(QuestionWithId::forwardedMessageId, forwardedMessageId),
+                setValue(QuestionWithId::forwardedChatId, forwardedChatId)
+            )
+        )
     }
 }

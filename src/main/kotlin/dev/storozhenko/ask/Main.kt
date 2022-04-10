@@ -25,6 +25,7 @@ import org.telegram.telegrambots.updatesreceivers.DefaultBotSession
 private val botToken = getEnv("TELEGRAM_API_TOKEN")
 private val botUsername = getEnv("TELEGRAM_BOT_USERNAME")
 private val mongoHost = getEnv("MONGO_HOST")
+private val chatInvites = getEnv("CHAT_INVITES")
 private val log = LoggerFactory.getLogger("Main")
 
 @Suppress("unused")
@@ -40,6 +41,7 @@ fun main() {
     val questionStorage = QuestionStorage(mongoClient)
     val sender = Sender(chats, channelId, questionStorage)
     val logStorage = LogStorage(mongoClient)
+    val chatInvitesMap = getChatInvites()
     val processors = listOf(
         EditQuestuionStageProcessor(questionStorage),
         EditTitleStageProcessor(questionStorage),
@@ -61,6 +63,7 @@ fun main() {
             banStorage,
             getResource("help.txt"),
             channelId,
+            chatInvitesMap,
             logStorage,
             processors
         )
@@ -79,4 +82,10 @@ private fun getEnv(envName: String): String {
 private fun getResource(name: String): String {
     return Sender::class.java.classLoader.getResource(name)?.readText()
         ?: throw IllegalStateException("Resource $name is not found")
+}
+
+private fun getChatInvites(): Map<Topic, String> {
+    return chatInvites.split("#")
+        .map { it.split(";") }
+        .associate { (topic, id) -> Topic.getByNameNotNull(topic) to id }
 }

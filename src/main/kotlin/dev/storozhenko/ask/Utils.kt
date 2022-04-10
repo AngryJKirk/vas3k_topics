@@ -5,7 +5,7 @@ import dev.storozhenko.ask.models.Topic
 fun getLinkToChannel(channelId: String, channelMessageId: Int): String {
     val linkChannelId = channelId.cleanId()
     return "🔗 Ответы на вопрос в канале"
-        .link("https://t.me/c/$linkChannelId/$channelMessageId")
+        .link("https://t.me/c/$linkChannelId/$channelMessageId?comment=1")
 }
 
 fun getLinkToChat(chatMessageId: Int, chatId: String, topic: Topic): String {
