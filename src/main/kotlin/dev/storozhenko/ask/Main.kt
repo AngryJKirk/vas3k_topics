@@ -21,11 +21,14 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.telegram.telegrambots.meta.TelegramBotsApi
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession
+import java.net.URI
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse
 
 private val botToken = getEnv("TELEGRAM_API_TOKEN")
 private val botUsername = getEnv("TELEGRAM_BOT_USERNAME")
 private val mongoHost = getEnv("MONGO_HOST")
-private val chatInvites = getEnv("CHAT_INVITES")
 private val log = LoggerFactory.getLogger("Main")
 
 @Suppress("unused")
@@ -85,7 +88,14 @@ private fun getResource(name: String): String {
 }
 
 private fun getChatInvites(): Map<Topic, String> {
-    return chatInvites.split("#")
+    val client = HttpClient.newBuilder().build()
+    val request = HttpRequest.newBuilder()
+        .uri(URI.create(getEnv("CHAT_INVITES_URL")))
+        .build()
+
+    val response = client.send(request, HttpResponse.BodyHandlers.ofString()).body()
+
+    return response.split("#")
         .map { it.split(";") }
         .associate { (topic, id) -> Topic.getByNameNotNull(topic) to id }
 }

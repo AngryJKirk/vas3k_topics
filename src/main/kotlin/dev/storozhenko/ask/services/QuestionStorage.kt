@@ -1,6 +1,7 @@
 package dev.storozhenko.ask.services
 
 import com.mongodb.client.MongoClient
+import com.mongodb.client.model.Indexes
 import dev.storozhenko.ask.models.Question
 import dev.storozhenko.ask.models.Topic
 import org.litote.kmongo.and
@@ -24,10 +25,17 @@ data class QuestionWithId(
     val chatId: String? = null,
 )
 
+data class BoundReplies(
+    val messageId: Int,
+    val questionId: String,
+)
+
 class QuestionStorage(client: MongoClient) {
     private val database = client.getDatabase("questions")
     private val openQuestions = database.getCollection<QuestionWithId>("open_questions")
     private val closedQuestions = database.getCollection<QuestionWithId>("closed_questions")
+    private val boundReplies =
+        database.getCollection<BoundReplies>("bound_replies").apply { createIndex(Indexes.hashed("messageId")) }
 
     fun addQuestionText(update: Update, text: String) {
         val question = findOrCreate(update)
@@ -45,7 +53,7 @@ class QuestionStorage(client: MongoClient) {
     }
 
     fun deleteQuestion(update: Update) {
-        val question = findOrCreate(update)
+        val question = findQuestion(update) ?: return
         closedQuestions.insertOne(question)
         openQuestions.deleteOne(QuestionWithId::id eq getKey(update))
     }
@@ -82,6 +90,10 @@ class QuestionStorage(client: MongoClient) {
         return closedQuestions.findOne(QuestionWithId::channelMessageId eq channelMessageId)
     }
 
+    fun findByQuestionId(questionId: String): QuestionWithId? {
+        return closedQuestions.findOne(QuestionWithId::id eq questionId)
+    }
+
     fun getQuestion(update: Update): Question {
         val questionWithId = findOrCreate(update)
         return Question(
@@ -92,6 +104,24 @@ class QuestionStorage(client: MongoClient) {
             questionWithId.chatMessageId,
             questionWithId.channelMessageId
         )
+    }
+
+    fun addForwardedInfo(channelMessageId: String, forwardedMessageId: String, forwardedChatId: String) {
+        closedQuestions.updateOne(
+            QuestionWithId::channelMessageId eq channelMessageId,
+            listOf(
+                setValue(QuestionWithId::forwardedMessageId, forwardedMessageId),
+                setValue(QuestionWithId::forwardedChatId, forwardedChatId)
+            )
+        )
+    }
+
+    fun addBoundReply(messageId: Int, questionId: String) {
+        boundReplies.insertOne(BoundReplies(messageId, questionId))
+    }
+
+    fun getBoundQuestion(messageId: Int): String? {
+        return boundReplies.findOne(BoundReplies::messageId eq messageId)?.questionId
     }
 
     private fun getKey(update: Update): String {
@@ -107,8 +137,8 @@ class QuestionStorage(client: MongoClient) {
 
     private fun findOrCreate(update: Update): QuestionWithId {
         val key = getKey(update)
-        val (authorId, authorName) = getAuthor(update)
         val foundQuestion = openQuestions.findOne { QuestionWithId::id eq key }
+        val (authorId, authorName) = getAuthor(update)
         return if (foundQuestion == null) {
             val newQuestion = QuestionWithId(key, authorId = authorId.toString(), authorName = authorName)
             openQuestions.insertOne(newQuestion)
@@ -118,13 +148,8 @@ class QuestionStorage(client: MongoClient) {
         }
     }
 
-    fun addForwardedInfo(channelMessageId: String, forwardedMessageId: String, forwardedChatId: String) {
-        closedQuestions.updateOne(
-            QuestionWithId::channelMessageId eq channelMessageId,
-            listOf(
-                setValue(QuestionWithId::forwardedMessageId, forwardedMessageId),
-                setValue(QuestionWithId::forwardedChatId, forwardedChatId)
-            )
-        )
+    private fun findQuestion(update: Update): QuestionWithId? {
+        val key = getKey(update)
+        return openQuestions.findOne { QuestionWithId::id eq key }
     }
 }

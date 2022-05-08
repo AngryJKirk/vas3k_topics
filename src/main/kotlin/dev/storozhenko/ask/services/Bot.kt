@@ -84,24 +84,31 @@ class Bot(
     }
 
     private fun processGroupChat(update: Update) {
-        if (update.message.hasText() && update.message.text.startsWith("/ban")) {
+        val message = update.message
+        if (message.hasText() && message.text.startsWith("/ban")) {
             processBan(update)
-            log.info("Banned user ${update.message.from.id}")
+            log.info("Banned user ${message.from.id}")
         }
-        if (update.message.hasText() && update.message.isReply) {
-            if (update.message.replyToMessage.from.userName == botUsername) {
+        if (message.hasText() && message.isReply) {
+            val replyToMessage = message.replyToMessage
+            if (replyToMessage.from.userName == botUsername) {
                 processChatReply(update)
                 log.info("Processed chat reply")
             }
-            if (update.message.replyToMessage.isAutomaticForward == true) {
+            if (replyToMessage.isAutomaticForward == true) {
                 processChannelReply(update)
                 log.info("Processed channel reply")
+            }
+            val possibleQuestionId = questionStorage.getBoundQuestion(replyToMessage.messageId)
+            if (possibleQuestionId != null) {
+                processChannelReply(update, possibleQuestionId)
             }
         }
     }
 
     private fun processUserChat(update: Update) {
-        val userId = update.message.from.id
+        val message = update.message
+        val userId = message.from.id
         MDC.putCloseable("user_id", userId.toString()).use {
             val ban = banStorage.isBanned(userId)
 
@@ -113,15 +120,15 @@ class Bot(
                 log.info("User $userId is banned, shall not pass")
                 return
             }
-            if (update.message.hasText()) {
-                if (update.message.text.startsWith("/start")) {
+            if (message.hasText()) {
+                if (message.text.startsWith("/start")) {
                     log.info("User (re)started the bot")
                     questionStorage.deleteQuestion(update)
                     stageStorage.updateStage(userId, stage = Stage.NONE)
                     this.send(update, helpText)
                 }
 
-                if (update.message.text.startsWith("/help")) {
+                if (message.text.startsWith("/help")) {
                     log.info("User requested help")
                     this.send(update, helpText)
                     return
@@ -135,13 +142,19 @@ class Bot(
         }
     }
 
-    private fun processChannelReply(update: Update) {
+    private fun processChannelReply(update: Update, questionId: String? = null) {
         val messageId = update.message.replyToMessage.forwardFromMessageId.toString()
-        val question = questionStorage.findByChannelMessageId(messageId)
+        val question = if (questionId == null) {
+            questionStorage.findByChannelMessageId(messageId)
+        } else {
+            questionStorage.findByQuestionId(questionId)
+        }
+
         if (question == null) {
             log.info("Could not find question for channel reply, messageId: $messageId")
             return
         }
+        questionStorage.addBoundReply(update.message.messageId, question.id)
         processReply(question, update, inviteLink = false)
     }
 
@@ -162,22 +175,23 @@ class Bot(
     }
 
     private fun processReply(question: QuestionWithId, update: Update, inviteLink: Boolean) {
-        val responseChatId = update.message.chat.id.toString().cleanId()
-        val responseMessageId = update.message.messageId.toString()
+        val message = update.message
+        val responseChatId = message.chat.id.toString().cleanId()
+        val responseMessageId = message.messageId.toString()
         val responseLink = "\uD83D\uDCACответ".link("https://t.me/c/$responseChatId/$responseMessageId")
         val questionLink =
             "❓ Ссылка на ваш вопрос".link("https://t.me/c/${channelId.cleanId()}/${question.channelMessageId}?comment=1")
-        val responseAuthor = update.message.from.name(link = true, nameOnly = true)
-        val message =
+        val responseAuthor = message.from.name(link = true, nameOnly = true)
+        val textToSend =
             if (inviteLink) {
                 val chatInviteLink = getChatInviteLink(question)
-                "Вам $responseLink на вопрос \"${question.title?.bold()}\" от $responseAuthor из чата $chatInviteLink:\n\n ${update.message.text.italic()}" +
+                "Вам $responseLink на вопрос \"${question.title?.bold()}\" от $responseAuthor из чата $chatInviteLink:\n\n ${message.text.italic()}" +
                     "\n\n" + questionLink
             } else {
-                "Вам $responseLink на вопрос \"${question.title?.bold()}\" от $responseAuthor из чата канала:\n\n ${update.message.text.italic()}" +
+                "Вам $responseLink на вопрос \"${question.title?.bold()}\" от $responseAuthor из чата канала:\n\n ${message.text.italic()}" +
                     "\n\n" + questionLink
             }
-        execute(SendMessage(question.authorId, message)
+        execute(SendMessage(question.authorId, textToSend)
             .apply { parseMode = ParseMode.MARKDOWN })
     }
 
