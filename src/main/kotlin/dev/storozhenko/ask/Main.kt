@@ -29,6 +29,7 @@ import java.net.http.HttpResponse
 private val botToken = getEnv("TELEGRAM_API_TOKEN")
 private val botUsername = getEnv("TELEGRAM_BOT_USERNAME")
 private val mongoHost = getEnv("MONGO_HOST")
+private val invites = getEnv("CHAT_INVITES_URL")
 private val log = LoggerFactory.getLogger("Main")
 
 @Suppress("unused")
@@ -90,7 +91,7 @@ private fun getResource(name: String): String {
 private fun getChatInvites(): Map<Topic, String> {
     val client = HttpClient.newBuilder().build()
     val request = HttpRequest.newBuilder()
-        .uri(URI.create(getEnv("CHAT_INVITES_URL")))
+        .uri(URI.create(invites))
         .build()
 
     val response = client.send(request, HttpResponse.BodyHandlers.ofString()).body()
