@@ -192,7 +192,7 @@ class Bot(
                     "\n\n" + questionLink
             }
         execute(SendMessage(question.authorId, textToSend)
-            .apply { parseMode = ParseMode.MARKDOWN })
+            .apply { parseMode = ParseMode.HTML })
     }
 
     private fun forwardToChannelChat(question: QuestionWithId, update: Update) {
@@ -211,7 +211,7 @@ class Bot(
         execute(SendMessage(forwardedChatId, message)
             .apply {
                 replyToMessageId = question.forwardedMessageId?.toInt()
-                parseMode = ParseMode.MARKDOWN
+                parseMode = ParseMode.HTML
             })
     }
 

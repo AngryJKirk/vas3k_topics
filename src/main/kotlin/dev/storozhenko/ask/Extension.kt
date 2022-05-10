@@ -1,5 +1,6 @@
 package dev.storozhenko.ask
 
+import org.telegram.telegrambots.meta.api.methods.ParseMode
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.objects.Message
 import org.telegram.telegrambots.meta.api.objects.Update
@@ -24,7 +25,7 @@ fun AbsSender.send(
 
     val messageObj = SendMessage(update.chatIdString(), text)
         .apply {
-            parseMode = "Markdown"
+            parseMode = ParseMode.HTML
         }
     val message = messageObj.apply(customization)
 
@@ -57,15 +58,15 @@ fun Collection<String>.toKeyboard(chunkSize: Int = 2): ReplyKeyboardMarkup {
 }
 
 fun String.link(link: String): String {
-    return "[$this]($link)"
+    return "<a href=\"$link\">$this</a>"
 }
 
 fun String.bold(): String {
-    return "*$this*"
+    return "<b>$this</b>"
 }
 
 fun String.italic(): String {
-    return "_${this}_"
+    return "<i>${this}</i>"
 }
 
 fun ChatMember.user(): User {
