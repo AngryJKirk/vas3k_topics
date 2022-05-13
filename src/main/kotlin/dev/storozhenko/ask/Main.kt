@@ -96,6 +96,7 @@ private fun getChats(): Map<Topic, List<String>> {
     val response = getTextByUrl(chats)
 
     return response.split("\n")
+        .filter { it.isNotBlank() }
         .map { it.split(";") }
         .associate { (topic, id) -> Topic.getByNameNotNull(topic) to id.split(",") }
 }
