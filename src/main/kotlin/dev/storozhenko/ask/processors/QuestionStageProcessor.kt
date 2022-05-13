@@ -20,7 +20,7 @@ class QuestionStageProcessor(private val questionStorage: QuestionStorage) : Sta
         if (message.entities.none { it.type == "hashtag" }) {
             return {
                 it.send(update, "Надо добавить хотя бы один хештег")
-                Stage.QUESTION_EDIT
+                Stage.QUESTION
             }
         }
         questionStorage.addQuestionText(update, text)
