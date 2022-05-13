@@ -47,6 +47,8 @@ fun main() {
     val sender = Sender(chats, channelId, questionStorage)
     val logStorage = LogStorage(mongoClient)
     val chatInvitesMap = getChatInvites()
+    val stageStorage = StageStorage(mongoClient)
+    val helpText = getHelp()
     val processors = listOf(
         EditQuestuionStageProcessor(questionStorage),
         EditTitleStageProcessor(questionStorage),
@@ -63,10 +65,10 @@ fun main() {
         Bot(
             botToken,
             botUsername,
-            StageStorage(mongoClient),
+            stageStorage,
             questionStorage,
             banStorage,
-            getHelp(),
+            helpText,
             channelId,
             chatInvitesMap,
             logStorage,
