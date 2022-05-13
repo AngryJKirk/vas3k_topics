@@ -10,6 +10,7 @@ services:
       - TELEGRAM_API_TOKEN
       - TELEGRAM_BOT_USERNAME
       - CHAT_INVITES_URL
+      - CHAT_IDS_URL
       - CHANNEL_ID
       - MONGO_HOST=mongodb_container
     networks:

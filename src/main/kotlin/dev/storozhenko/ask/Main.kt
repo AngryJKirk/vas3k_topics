@@ -30,6 +30,7 @@ private val botToken = getEnv("TELEGRAM_API_TOKEN")
 private val botUsername = getEnv("TELEGRAM_BOT_USERNAME")
 private val mongoHost = getEnv("MONGO_HOST")
 private val invites = getEnv("CHAT_INVITES_URL")
+private val chats = getEnv("CHAT_IDS_URL")
 private val channelId = getEnv("CHANNEL_ID")
 private val log = LoggerFactory.getLogger("Main")
 
@@ -65,7 +66,7 @@ fun main() {
             StageStorage(mongoClient),
             questionStorage,
             banStorage,
-            getResource("help.txt"),
+            getHelp(),
             channelId,
             chatInvitesMap,
             logStorage,
@@ -75,28 +76,35 @@ fun main() {
     log.info("The application has started")
 }
 
-private fun getChats() = getResource("chats.csv").lines()
-    .map { it.split(";") }
-    .associate { (topic, id) -> Topic.getByNameNotNull(topic) to id.split(",") }
-
 private fun getEnv(envName: String): String {
     return System.getenv()[envName] ?: throw IllegalStateException("$envName does not exist")
 }
 
-private fun getResource(name: String): String {
-    return Sender::class.java.classLoader.getResource(name)?.readText()
-        ?: throw IllegalStateException("Resource $name is not found")
+private fun getHelp(): String {
+    return Sender::class.java.classLoader.getResource("help.txt")?.readText()
+        ?: throw IllegalStateException("Help message (help.txt) is not found in resources")
 }
 
 private fun getChatInvites(): Map<Topic, String> {
-    val client = HttpClient.newBuilder().build()
-    val request = HttpRequest.newBuilder()
-        .uri(URI.create(invites))
-        .build()
-
-    val response = client.send(request, HttpResponse.BodyHandlers.ofString()).body()
-
+    val response = getTextByUrl(invites)
     return response.split("#")
         .map { it.split(";") }
         .associate { (topic, id) -> Topic.getByNameNotNull(topic) to id }
+}
+
+private fun getChats(): Map<Topic, List<String>> {
+    val response = getTextByUrl(chats)
+
+    return response.split("\n")
+        .map { it.split(";") }
+        .associate { (topic, id) -> Topic.getByNameNotNull(topic) to id.split(",") }
+}
+
+private fun getTextByUrl(url: String): String {
+    val client = HttpClient.newBuilder().build()
+    val request = HttpRequest.newBuilder()
+        .uri(URI.create(url))
+        .build()
+
+    return client.send(request, HttpResponse.BodyHandlers.ofString()).body()
 }
