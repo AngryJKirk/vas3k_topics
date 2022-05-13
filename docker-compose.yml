@@ -9,7 +9,7 @@ services:
     environment:
       - TELEGRAM_API_TOKEN
       - TELEGRAM_BOT_USERNAME
-      - CHAT_INVITES
+      - CHAT_INVITES_URL
       - CHANNEL_ID
       - MONGO_HOST=mongodb_container
     networks:
