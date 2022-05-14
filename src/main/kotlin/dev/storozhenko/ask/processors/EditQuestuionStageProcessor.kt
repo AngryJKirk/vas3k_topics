@@ -19,7 +19,8 @@ class EditQuestuionStageProcessor(
                 it.send(update, "Чтобы исправить вопрос, надо ввести текст")
                 Stage.QUESTION_EDIT
             }
-        if (message.entities?.none { it.type == "hashtag" } == true) {
+        val entities = message.entities
+        if (entities == null || entities.none { it.type == "hashtag" }) {
             return {
                 it.send(update, "Надо добавить хотя бы один хэштег в начало или конец вопроса")
                 Stage.QUESTION_EDIT
