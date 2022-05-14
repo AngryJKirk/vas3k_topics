@@ -17,7 +17,7 @@ class QuestionStageProcessor(private val questionStorage: QuestionStorage) : Sta
                 it.send(update, "Глупышка, пришли текст вопроса.")
                 Stage.QUESTION
             }
-        if (message.entities.none { it.type == "hashtag" }) {
+        if (message.entities?.none { it.type == "hashtag" } == true) {
             return {
                 it.send(update, "Надо добавить хотя бы один хэштег в начало или конец вопроса")
                 Stage.QUESTION
