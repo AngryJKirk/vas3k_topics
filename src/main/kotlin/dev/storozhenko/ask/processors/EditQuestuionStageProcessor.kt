@@ -21,7 +21,7 @@ class EditQuestuionStageProcessor(
             }
         if (message.entities.none { it.type == "hashtag" }) {
             return {
-                it.send(update, "Надо добавить хотя бы один хештег")
+                it.send(update, "Надо добавить хотя бы один хэштег в начало или конец вопроса")
                 Stage.QUESTION_EDIT
             }
         }
