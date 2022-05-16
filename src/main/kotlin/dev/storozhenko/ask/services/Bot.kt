@@ -189,7 +189,7 @@ class Bot(
                 "Вам $responseLink на вопрос \"${question.title?.bold()}\" от $responseAuthor из чата канала:\n\n ${message.text.italic()}" +
                     "\n\n" + questionLink
             }
-        send(update, textToSend)
+        send(question.authorId, textToSend)
     }
 
     private fun forwardToChannelChat(question: QuestionWithId, update: Update) {
@@ -205,7 +205,7 @@ class Bot(
         val chatLink = getChatInviteLink(question)
         val message =
             "$responseLink от $responseAuthor из чата $chatLink:\n\n${update.message.text.italic()}"
-        send(update, message) {
+        send(forwardedChatId, message) {
             replyToMessageId = question.forwardedMessageId?.toInt()
         }
     }

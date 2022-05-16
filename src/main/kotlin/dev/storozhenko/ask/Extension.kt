@@ -33,6 +33,22 @@ fun AbsSender.send(
     return this.execute(message)
 }
 
+fun AbsSender.send(
+    chatId: String,
+    text: String,
+    customization: SendMessage.() -> Unit = { },
+): Message {
+
+    val messageObj = SendMessage(chatId, text)
+        .apply {
+            disableWebPagePreview = true
+            parseMode = ParseMode.HTML
+        }
+    val message = messageObj.apply(customization)
+
+    return this.execute(message)
+}
+
 fun Update.chatId(): Long {
     return when {
         hasMessage() -> message.chat.id

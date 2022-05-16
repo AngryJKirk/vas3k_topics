@@ -7,7 +7,6 @@ import dev.storozhenko.ask.models.Question
 import dev.storozhenko.ask.models.Topic
 import dev.storozhenko.ask.send
 import org.telegram.telegrambots.meta.api.methods.ParseMode
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText
 import org.telegram.telegrambots.meta.api.objects.Update
 import org.telegram.telegrambots.meta.bots.AbsSender
@@ -20,18 +19,14 @@ class Sender(
     private val log = getLogger()
 
     fun broadcast(update: Update, question: Question, absSender: AbsSender): String {
-        val execute = absSender.send(update, question.toString())
+        val execute = absSender.send(channelId, question.toString())
         val channelMessageId = execute.messageId
         val linkToChannel = getLinkToChannel(channelId, channelMessageId)
         questionStorage.addChannelMessageId(update, channelMessageId.toString())
         val chatId = chats[question.topic]?.first() ?: return linkToChannel
         runCatching {
-            val message = SendMessage.builder()
-                .chatId(chatId)
-                .parseMode(ParseMode.HTML)
-                .text(question.toString() + "\n\n" + linkToChannel)
-                .build()
-            val chatMessageId = absSender.execute(message).messageId
+            val message = absSender.send(chatId, question.toString() + "\n\n" + linkToChannel)
+            val chatMessageId = message.messageId
             val linkToChat = getLinkToChat(chatMessageId, chatId, question.topic)
             questionStorage.addChatMessageId(update, chatMessageId.toString(), chatId)
             absSender.execute(
