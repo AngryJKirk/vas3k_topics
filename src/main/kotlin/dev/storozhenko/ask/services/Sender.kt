@@ -5,6 +5,7 @@ import dev.storozhenko.ask.getLinkToChat
 import dev.storozhenko.ask.getLogger
 import dev.storozhenko.ask.models.Question
 import dev.storozhenko.ask.models.Topic
+import dev.storozhenko.ask.send
 import org.telegram.telegrambots.meta.api.methods.ParseMode
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText
@@ -19,12 +20,7 @@ class Sender(
     private val log = getLogger()
 
     fun broadcast(update: Update, question: Question, absSender: AbsSender): String {
-        val channelMessage = SendMessage.builder()
-            .chatId(channelId)
-            .text(question.toString())
-            .parseMode(ParseMode.HTML)
-            .build()
-        val execute = absSender.execute(channelMessage)
+        val execute = absSender.send(update, question.toString())
         val channelMessageId = execute.messageId
         val linkToChannel = getLinkToChannel(channelId, channelMessageId)
         questionStorage.addChannelMessageId(update, channelMessageId.toString())

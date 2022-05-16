@@ -14,9 +14,7 @@ import dev.storozhenko.ask.send
 import dev.storozhenko.ask.user
 import org.slf4j.MDC
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
-import org.telegram.telegrambots.meta.api.methods.ParseMode
 import org.telegram.telegrambots.meta.api.methods.groupadministration.GetChatAdministrators
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage
 import org.telegram.telegrambots.meta.api.objects.Update
 import org.telegram.telegrambots.meta.api.objects.chatmember.ChatMemberAdministrator
@@ -191,8 +189,7 @@ class Bot(
                 "Вам $responseLink на вопрос \"${question.title?.bold()}\" от $responseAuthor из чата канала:\n\n ${message.text.italic()}" +
                     "\n\n" + questionLink
             }
-        execute(SendMessage(question.authorId, textToSend)
-            .apply { parseMode = ParseMode.HTML })
+        send(update, textToSend)
     }
 
     private fun forwardToChannelChat(question: QuestionWithId, update: Update) {
@@ -208,11 +205,9 @@ class Bot(
         val chatLink = getChatInviteLink(question)
         val message =
             "$responseLink от $responseAuthor из чата $chatLink:\n\n${update.message.text.italic()}"
-        execute(SendMessage(forwardedChatId, message)
-            .apply {
-                replyToMessageId = question.forwardedMessageId?.toInt()
-                parseMode = ParseMode.HTML
-            })
+        send(update, message) {
+            replyToMessageId = question.forwardedMessageId?.toInt()
+        }
     }
 
     private val adminStatuses = setOf(ChatMemberAdministrator.STATUS, ChatMemberOwner.STATUS)

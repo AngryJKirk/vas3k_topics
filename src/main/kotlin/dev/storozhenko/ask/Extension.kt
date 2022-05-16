@@ -25,6 +25,7 @@ fun AbsSender.send(
 
     val messageObj = SendMessage(update.chatIdString(), text)
         .apply {
+            disableWebPagePreview = true
             parseMode = ParseMode.HTML
         }
     val message = messageObj.apply(customization)
