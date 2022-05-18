@@ -25,7 +25,7 @@ class Sender(
         questionStorage.addChannelMessageId(update, channelMessageId.toString())
         val chatId = chats[question.topic]?.first() ?: return linkToChannel
         runCatching {
-            val message = absSender.send(chatId, question.toString() + "\n\n" + linkToChannel + "\n\n ↩️ Вы можете ответить реплаем на это сообщение. Ваш ответ перешлется в канал.")
+            val message = absSender.send(chatId, question.toStringWithoutTopic() + "\n\n" + linkToChannel + "\n\n ↩️ Вы можете ответить реплаем на это сообщение. Ваш ответ перешлется в канал.")
             val chatMessageId = message.messageId
             val linkToChat = getLinkToChat(chatMessageId, chatId, question.topic)
             questionStorage.addChatMessageId(update, chatMessageId.toString(), chatId)

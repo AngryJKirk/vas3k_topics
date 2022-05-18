@@ -20,4 +20,11 @@ data class Question(
             text.italic()
         ).joinToString("\n\n")
     }
+
+    fun toStringWithoutTopic(): String {
+        return listOf(
+            title.bold() + " от ${author.second.link("tg://user?id=${author.first}")}",
+            text.italic()
+        ).joinToString("\n\n")
+    }
 }
