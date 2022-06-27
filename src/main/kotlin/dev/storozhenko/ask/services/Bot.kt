@@ -173,7 +173,7 @@ class Bot(
     }
 
     private fun isQuestionersAnswer(question: QuestionWithId, update: Update): Boolean {
-        return update.message.from.id.toString() == question.authorId
+        return questionStorage.getAuthor(update).second == question.authorId
     }
 
     private fun processReply(question: QuestionWithId, update: Update, inviteLink: Boolean) {
