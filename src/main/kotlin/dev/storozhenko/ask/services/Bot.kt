@@ -172,7 +172,20 @@ class Bot(
         forwardToChannelChat(question, update)
     }
 
+    private fun isQuestionersAnswer(question: QuestionWithId, update: Update): Boolean {
+        return questionStorage.getAuthor(update).second == question.authorId
+    }
+
     private fun processReply(question: QuestionWithId, update: Update, inviteLink: Boolean) {
+
+        if (isQuestionersAnswer(question, update)) {
+            log.info(
+                    "Shouldn't notify the questioner (${question.authorId}) of his own answer (${update.message.from.id})"
+            )
+
+            return
+        }
+
         val message = update.message
         val responseChatId = message.chat.id.toString().cleanId()
         val responseMessageId = message.messageId.toString()
