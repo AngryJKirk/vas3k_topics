@@ -140,19 +140,15 @@ class Bot(
         }
     }
 
-    private fun processChannelReply(update: Update, questionId: String? = null) {
+    private fun processChannelReply(update: Update, possibleQuestion: QuestionWithId? = null) {
         val messageId = update.message.replyToMessage.forwardFromMessageId.toString()
-        val question = if (questionId == null) {
-            questionStorage.findByChannelMessageId(messageId)
-        } else {
-            questionStorage.findByQuestionId(questionId)
-        }
+        val question = possibleQuestion ?: questionStorage.findByChannelMessageId(messageId)
 
         if (question == null) {
             log.info("Could not find question for channel reply, messageId: $messageId")
             return
         }
-        questionStorage.addBoundReply(update.message.messageId, question.id)
+        questionStorage.addBoundReply(update.message.messageId, question)
         processReply(question, update, inviteLink = false)
     }
 

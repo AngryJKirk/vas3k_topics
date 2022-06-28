@@ -28,6 +28,7 @@ data class QuestionWithId(
 data class BoundReplies(
     val messageId: Int,
     val questionId: String,
+    val channelMessageId: String?
 )
 
 class QuestionStorage(client: MongoClient) {
@@ -90,10 +91,6 @@ class QuestionStorage(client: MongoClient) {
         return closedQuestions.findOne(QuestionWithId::channelMessageId eq channelMessageId)
     }
 
-    fun findByQuestionId(questionId: String): QuestionWithId? {
-        return closedQuestions.findOne(QuestionWithId::id eq questionId)
-    }
-
     fun getQuestion(update: Update): Question {
         val questionWithId = findOrCreate(update)
         return Question(
@@ -116,12 +113,14 @@ class QuestionStorage(client: MongoClient) {
         )
     }
 
-    fun addBoundReply(messageId: Int, questionId: String) {
-        boundReplies.insertOne(BoundReplies(messageId, questionId))
+    fun addBoundReply(messageId: Int, question: QuestionWithId) {
+        boundReplies.insertOne(BoundReplies(messageId, question.id, question.channelMessageId))
     }
 
-    fun getBoundQuestion(messageId: Int): String? {
-        return boundReplies.findOne(BoundReplies::messageId eq messageId)?.questionId
+    fun getBoundQuestion(messageId: Int): QuestionWithId? {
+        val channelMessageId =
+            boundReplies.findOne(BoundReplies::messageId eq messageId)?.channelMessageId ?: return null
+        return findByChannelMessageId(channelMessageId)
     }
 
     private fun getKey(update: Update): String {
