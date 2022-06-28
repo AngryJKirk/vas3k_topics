@@ -97,10 +97,10 @@ class Bot(
                 processChannelReply(update)
                 log.info("Processed channel reply")
             }
-            val possibleQuestionId = questionStorage.getBoundQuestion(replyToMessage.messageId)
-            if (possibleQuestionId != null) {
-                processChannelReply(update, possibleQuestionId)
-            }
+            // val possibleQuestionId = questionStorage.getBoundQuestion(replyToMessage.messageId)
+            // if (possibleQuestionId != null) {
+            //     processChannelReply(update, possibleQuestionId)
+            // }
         }
     }
 
