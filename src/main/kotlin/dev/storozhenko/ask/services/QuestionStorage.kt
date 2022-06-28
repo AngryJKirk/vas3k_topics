@@ -123,15 +123,15 @@ class QuestionStorage(client: MongoClient) {
         return findByChannelMessageId(channelMessageId)
     }
 
-    private fun getKey(update: Update): String {
-        val (id, name) = getAuthor(update)
-        return "$id $name"
-    }
-
-    private fun getAuthor(update: Update): Pair<Long, String> {
+    fun getAuthor(update: Update): Pair<Long, String> {
         val from = update.message.from
         val name = listOfNotNull(from.firstName, from.lastName).joinToString(separator = " ")
         return from.id to name
+    }
+
+    private fun getKey(update: Update): String {
+        val (id, name) = getAuthor(update)
+        return "$id $name"
     }
 
     private fun findOrCreate(update: Update): QuestionWithId {
