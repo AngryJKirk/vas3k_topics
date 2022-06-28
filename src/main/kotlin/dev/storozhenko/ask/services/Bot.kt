@@ -173,14 +173,18 @@ class Bot(
     }
 
     private fun isQuestionersAnswer(question: QuestionWithId, update: Update): Boolean {
-        return questionStorage.getAuthor(update).second == question.authorId
+
+        val messageAuthorId = update.message?.from?.id?.toString()
+        val replyToId = update.message?.replyToMessage?.from?.id?.toString()
+
+        return messageAuthorId == question.authorId || replyToId == question.authorId
     }
 
     private fun processReply(question: QuestionWithId, update: Update, inviteLink: Boolean) {
 
         if (isQuestionersAnswer(question, update)) {
             log.info(
-                    "Shouldn't notify the questioner (${question.authorId}) of his own answer (${update.message.from.id})"
+                    "Shouldn't notify the questioner (${question.authorId}) of his own answer (${update.message?.from?.id} or direct replies (${update.message?.replyToMessage?.from?.id}))"
             )
 
             return
