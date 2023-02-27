@@ -1,5 +1,6 @@
 package dev.storozhenko.ask
 
+import com.google.common.html.HtmlEscapers
 import org.telegram.telegrambots.meta.api.methods.ParseMode
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.objects.Message
@@ -116,4 +117,8 @@ fun User.name(link: Boolean, nameOnly: Boolean = false): String {
 
 fun String.cleanId(): String {
     return this.replace("-100", "")
+}
+
+fun String.htmlEscape(): String {
+    return HtmlEscapers.htmlEscaper().escape(this)
 }

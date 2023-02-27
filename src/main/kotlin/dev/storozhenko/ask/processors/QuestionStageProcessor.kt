@@ -1,5 +1,6 @@
 package dev.storozhenko.ask.processors
 
+import dev.storozhenko.ask.htmlEscape
 import dev.storozhenko.ask.models.EditButton
 import dev.storozhenko.ask.models.Stage
 import dev.storozhenko.ask.send
@@ -12,7 +13,7 @@ class QuestionStageProcessor(private val questionStorage: QuestionStorage) : Sta
 
     override fun process(update: Update): (AbsSender) -> Stage {
         val message = update.message
-        val text = message.text.takeIf(String::isNotBlank)
+        val text = message.text.takeIf(String::isNotBlank)?.htmlEscape()
             ?: return {
                 it.send(update, "Глупышка, пришли текст вопроса.")
                 Stage.QUESTION

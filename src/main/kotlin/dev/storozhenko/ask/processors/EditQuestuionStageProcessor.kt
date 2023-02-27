@@ -1,5 +1,6 @@
 package dev.storozhenko.ask.processors
 
+import dev.storozhenko.ask.htmlEscape
 import dev.storozhenko.ask.models.EditButton
 import dev.storozhenko.ask.models.Stage
 import dev.storozhenko.ask.send
@@ -14,7 +15,7 @@ class EditQuestuionStageProcessor(
 
     override fun process(update: Update): (AbsSender) -> Stage {
         val message = update.message
-        val text = message.text
+        val text = message.text?.htmlEscape()
             ?: return {
                 it.send(update, "Чтобы исправить вопрос, надо ввести текст")
                 Stage.QUESTION_EDIT
