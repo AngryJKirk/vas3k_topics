@@ -22,9 +22,6 @@ class BanStorage(client: MongoClient) {
     }
 
     fun isBanned(userId: Long): Ban? {
-        return banCollection
-            .find(Ban::userId eq userId)
-            .filter(Ban::banDate gt LocalDateTime.now().minusDays(7))
-            .firstOrNull()
+        return banCollection.findOne(Ban::userId eq userId, Ban::banDate gt LocalDateTime.now().minusDays(7))
     }
 }
